@@ -1,29 +1,30 @@
-import { useState, useEffect } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import { OCRProcessor } from '@/components/ocr-processor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Key, Github, AlertCircle, LogOut } from 'lucide-react';
+import { Key, AlertCircle } from 'lucide-react';
 import { apiKeySchema } from '@/lib/validation-schemas';
 import { ZodError } from 'zod';
-import { queryClient } from '@/lib/query-client';
 import { useApiKey } from '@/hooks/use-api-key';
 
-function App() {
-  const { apiKey, isApiKeySet, saveApiKey, clearApiKey } = useApiKey();
+export const Route = createFileRoute('/')({
+  component: Index,
+  head: () => ({
+    meta: [
+      {
+        title: 'Mistral Document OCR - Extract Text from Documents and Images',
+      },
+    ],
+  }),
+});
+
+function Index() {
+  const { apiKey, isApiKeySet, saveApiKey } = useApiKey();
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [apiKeyError, setApiKeyError] = useState<string>('');
-
-  // Reset apiKeyInput when isApiKeySet changes to false (when API key is cleared)
-  useEffect(() => {
-    if (!isApiKeySet) {
-      setApiKeyInput('');
-      setApiKeyError('');
-    }
-  }, [isApiKeySet]);
 
   const handleSetApiKey = () => {
     try {
@@ -42,17 +43,9 @@ function App() {
     }
   };
 
-  const handleResetApiKey = () => {
-    // Clear API key from state and localStorage
-    clearApiKey();
-
-    // Clear React Query cache to remove any cached OCR results
-    queryClient.clear();
-  };
-
   if (!isApiKeySet) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-background flex items-center justify-center p-4">
+      <div className="container mx-auto px-4 py-6 lg:py-8 flex items-center justify-center flex-1">
         <Card className="w-full max-w-md shadow-2xl border-2 animate-in fade-in zoom-in duration-500">
           <CardHeader className="text-center bg-linear-to-br from-primary/5 via-primary/3 to-transparent">
             <div className="flex justify-center mb-4">
@@ -72,7 +65,6 @@ function App() {
               <Label htmlFor="api-key" className="text-sm font-semibold">Mistral API Key</Label>
               <Input
                 id="api-key"
-                key={isApiKeySet ? 'set' : 'unset'} // Force remount when API key state changes
                 type="password"
                 placeholder="Enter your Mistral API key"
                 value={apiKeyInput}
@@ -87,8 +79,6 @@ function App() {
                 }}
                 className={`transition-all focus:ring-2 focus:ring-primary/20 ${apiKeyError ? 'border-destructive' : ''
                   }`}
-                autoComplete="new-password"
-                data-1p-ignore
               />
               {apiKeyError && (
                 <div className="flex items-center gap-2 text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
@@ -127,70 +117,8 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-linear-to-br from-background via-primary/5 to-background flex flex-col">
-        <header className="border-b backdrop-blur-sm bg-background/80 sticky top-0 z-50 shadow-sm shrink-0">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shadow-md ring-2 ring-primary/20">
-                <Key className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  Mistral Document OCR
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Powered by Mistral AI
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetApiKey}
-                className="shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Clear API Key
-              </Button>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-primary/5"
-              >
-                <Github className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 container mx-auto px-4 py-6 lg:py-8 flex flex-col">
-          <OCRProcessor apiKey={apiKey} />
-        </main>
-
-        <footer className="border-t backdrop-blur-sm bg-background/80 shrink-0">
-          <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
-            <p>
-              Mark Anthony Llego &middot;{' '}
-              <a
-                href="https://docs.mistral.ai/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline font-semibold transition-colors"
-              >
-                Documentation
-              </a>
-            </p>
-          </div>
-        </footer>
-      </div>
-
-      {/* React Query DevTools - only in development */}
-      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
-    </QueryClientProvider>
+    <div className="container mx-auto px-4 py-6 lg:py-8 flex flex-col flex-1">
+      <OCRProcessor apiKey={apiKey} />
+    </div>
   );
 }
-
-export default App;
