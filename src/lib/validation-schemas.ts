@@ -13,8 +13,8 @@ export const VALID_IMAGE_TYPES = [
 export const VALID_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.avif', '.webp', '.gif'] as const;
 export const PDF_EXTENSION = '.pdf';
 
-// Maximum file size: 10MB
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+// Maximum file size: 100MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
 // PDF file validation
 export const pdfFileSchema = z
